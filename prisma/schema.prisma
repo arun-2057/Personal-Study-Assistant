@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes       Note[]
+  studyPlans  StudyPlan[]
+  quizzes     Quiz[]
+  quizResults QuizResult[]
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  fileType  String   @default("text")
+  topics    String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studyPlans StudyPlan[]
+  quizzes    Quiz[]
+}
+
+model StudyPlan {
+  id        String   @id @default(cuid())
+  userId    String
+  noteId    String
+  plan      String
+  days      Int      @default(7)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+}
+
+model Quiz {
+  id          String       @id @default(cuid())
+  userId      String
+  noteId      String
+  title       String
+  questions   String
+  totalPoints Int          @default(0)
+  createdAt   DateTime     @default(now())
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note       Note         @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  results    QuizResult[]
+}
+
+model QuizResult {
+  id        String   @id @default(cuid())
+  userId    String
+  quizId    String
+  score     Int
+  total     Int
+  answers   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
